@@ -1,0 +1,37 @@
+name: Build and Update Docker Locally
+
+# Disparador: Ejecuta el workflow cuando se haga un push a la rama master
+on:
+  push:
+    branches:
+      - master  # Aquí indicamos que el workflow se ejecute al hacer un push en la rama master
+
+# Definición del job
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Usa un entorno Ubuntu en la nube para ejecutar los pasos
+
+    steps:
+    # Paso 1: Checkout del repositorio (descargar el código del repositorio)
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Paso 2: Configurar Docker para construir la imagen
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    # Paso 3: Construir la imagen Docker localmente
+    - name: Build Docker image
+      run: |
+        docker build -t mi-servicio-web:latest .
+
+    # Paso 4: Detener y eliminar el contenedor si está corriendo
+    - name: Stop and Remove Existing Container
+      run: |
+        docker stop mi-servicio-web || true
+        docker rm mi-servicio-web || true
+
+    # Paso 5: Correr el contenedor con la nueva imagen
+    - name: Run Docker container with updated image
+      run: |
+        docker run -d -p 8080:80 --name mi-servicio-web mi-servicio-web:latest
